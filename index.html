@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Sprinkler Loophole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one friendly column like a detective's casebook; the garden toy sits up top, then the case is solved step by step. */
+:root{
+  --bg:#f3f8f1; --card:#ffffff; --ink:#1c2b22; --muted:#56685c; --line:#d5e3d4;
+  --leaf:#2f8f4e; --leaf-soft:#dff1e3; --water:#1f7fc9; --water-soft:#dcedfb;
+  --sun:#f2a516; --sun-soft:#fdf0d3; --bad:#cf3a32; --bad-soft:#fbe2df; --good:#24894a; --good-soft:#dcf2e2;
+  --code-bg:#13251b; --code-ink:#e6f2e8;
+  --f-display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1913; --card:#16241b; --ink:#e7f1e9; --muted:#a3b8a8; --line:#2a3d30;
+  --leaf:#5cc27c; --leaf-soft:#1c3324; --water:#5fb2ef; --water-soft:#14293a;
+  --sun:#f6bd4a; --sun-soft:#3a2e12; --bad:#ff7a70; --bad-soft:#3d1a18; --good:#5fd38a; --good-soft:#163222;
+  --code-bg:#0a130d; --code-ink:#e6f2e8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1913; --card:#16241b; --ink:#e7f1e9; --muted:#a3b8a8; --line:#2a3d30;
+  --leaf:#5cc27c; --leaf-soft:#1c3324; --water:#5fb2ef; --water-soft:#14293a;
+  --sun:#f6bd4a; --sun-soft:#3a2e12; --bad:#ff7a70; --bad-soft:#3d1a18; --good:#5fd38a; --good-soft:#163222;
+  --code-bg:#0a130d; --code-ink:#e6f2e8; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:20px 80px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:700}
+h2{font-size:clamp(1.5rem,4vw,2rem);font-weight:600}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+
+/* nav */
+nav.steps{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px;overflow-x:auto;white-space:nowrap}
+nav.steps a{display:inline-block;padding:6px 12px;margin-right:4px;border-radius:999px;color:var(--ink);text-decoration:none;font-family:var(--f-display);font-weight:500;font-size:.95rem}
+nav.steps a:hover{background:var(--leaf-soft)}
+
+section{padding-block:36px 8px;display:grid;gap:16px}
+.eyebrow{font-family:var(--f-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;color:var(--leaf)}
+.lead{font-size:1.15rem;color:var(--muted);max-width:65ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.row{display:flex;flex-wrap:wrap;gap:16px}
+.row>*{flex:1 1 280px;min-width:0}
+
+/* hero */
+.hero{display:grid;gap:10px;padding-block:24px 8px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--sun-soft);color:var(--ink);border-radius:999px;padding:4px 14px;font-family:var(--f-display);font-weight:600;width:max-content}
+
+/* garden toy */
+.controls{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.ctl label{display:block;font-weight:700;margin-bottom:4px}
+.ctl .val{font-family:var(--f-mono);font-weight:700;color:var(--water)}
+input[type=range]{width:100%;accent-color:var(--leaf)}
+.toggle{display:flex;gap:6px}
+.toggle button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px;font-weight:700}
+.toggle button[aria-pressed="true"]{border-color:var(--water);background:var(--water-soft)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:.9rem}
+.chip:hover{border-color:var(--leaf)}
+.gardens{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.garden{border-radius:16px;overflow:hidden;border:2px solid var(--line);background:var(--card)}
+.garden.wrong{border-color:var(--bad)}
+.garden header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;flex-wrap:wrap}
+.garden svg{display:block;width:100%;height:auto}
+.pill{display:inline-block;border-radius:999px;padding:2px 12px;font-family:var(--f-display);font-weight:700;font-size:.95rem}
+.on{background:var(--water-soft);color:var(--water)}
+.off{background:var(--line);color:var(--muted)}
+.pass{background:var(--good-soft);color:var(--good)}
+.fail{background:var(--bad-soft);color:var(--bad)}
+.minitrace{padding:10px 14px 14px;font-family:var(--f-mono);font-size:.82rem;display:grid;gap:3px}
+.minitrace div{display:flex;justify-content:space-between;gap:8px}
+.verdict{font-family:var(--f-display);font-size:1.15rem;padding:12px 16px;border-radius:12px}
+
+.tf{display:inline-block;min-width:3.6em;text-align:center;border-radius:6px;padding:0 6px;font-family:var(--f-mono);font-weight:700;font-size:.85em}
+.tf.t{background:var(--good-soft);color:var(--good)}
+.tf.f{background:var(--bad-soft);color:var(--bad)}
+
+/* code */
+pre.code{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:16px;overflow-x:auto;margin:0;font-family:var(--f-mono);font-size:.9rem;line-height:1.7}
+.code .bug{background:rgba(255,90,80,.28);border-radius:4px;padding:0 3px;color:#ffd7d3}
+.code .fix{background:rgba(90,210,130,.28);border-radius:4px;padding:0 3px;color:#d6ffe2}
+.code .keep{background:rgba(250,190,70,.25);border-radius:4px;padding:0 3px;color:#ffe9bd}
+.code .cm{color:#8fb39a}
+
+/* trace walk */
+.tline{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.tline .n{font-family:var(--f-display);font-weight:700;color:var(--leaf);font-size:1.1rem}
+.tline .what{min-width:0}
+.tline .what code{display:block;overflow-x:auto;white-space:nowrap}
+.tline .why{color:var(--muted);font-size:.95rem}
+.tline.hide{display:none}
+.btn{border:none;background:var(--leaf);color:#fff;border-radius:12px;padding:10px 18px;font-family:var(--f-display);font-weight:600;font-size:1rem}
+.btn.ghost{background:transparent;color:var(--leaf);border:2px solid var(--leaf)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* number line */
+.nl{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px}
+.nl .cell{border-radius:6px;padding:4px 0 6px;text-align:center;background:var(--bg);border:1px solid var(--line);font-family:var(--f-mono);font-size:.7rem;display:grid;gap:3px;justify-items:center}
+.nl .dot{width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px solid var(--line)}
+.nl .dot.a{background:var(--water);border-color:var(--water)}
+.nl .dot.b{background:var(--sun);border-color:var(--sun)}
+.nl .cell.yes{background:var(--leaf-soft);border-color:var(--leaf);box-shadow:inset 0 -4px 0 var(--leaf)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:50%;display:inline-block}
+
+/* 24h strip */
+.strip{display:grid;grid-template-columns:7.5em repeat(24,minmax(14px,1fr));gap:2px;align-items:center;font-size:.8rem;min-width:560px}
+.strip .lab{font-family:var(--f-display);font-weight:600;font-size:.9rem}
+.strip .h{text-align:center;font-family:var(--f-mono);color:var(--muted);font-size:.68rem}
+.strip .c{height:26px;border-radius:4px;background:var(--line)}
+.strip .c.y{background:var(--water)}
+.strip .c.now{outline:3px solid var(--sun);outline-offset:1px}
+.scroll{overflow-x:auto}
+
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-family:var(--f-display);font-weight:600;color:var(--muted);font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono)}
+tr.hl td{background:var(--sun-soft)}
+
+/* quiz */
+.quiz{display:flex;flex-wrap:wrap;gap:10px}
+.quiz button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 16px;font-weight:700}
+.answer{border-radius:12px;padding:14px 16px}
+
+/* prompts */
+.prompt{display:grid;gap:12px}
+.prompt .ask{background:var(--water-soft);border-radius:12px;padding:14px 16px}
+.prompt .reply{border-left:4px solid var(--leaf);padding:4px 0 4px 14px;display:grid;gap:8px}
+.copy{border:1px solid var(--water);background:transparent;color:var(--water);border-radius:8px;padding:4px 10px;font-size:.85rem;font-weight:700}
+.tag{font-family:var(--f-display);font-weight:600;font-size:.85rem;color:var(--muted)}
+
+/* checklist */
+.checks{display:grid;gap:10px}
+.check{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.check input{width:24px;height:24px;accent-color:var(--leaf);margin-top:2px}
+.check b{font-family:var(--f-display);font-size:1.1rem}
+
+/* roles */
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.role{padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;gap:6px}
+.role input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;background:var(--bg);color:var(--ink);width:100%}
+
+/* script */
+.script{display:grid;gap:10px}
+.beat{display:grid;grid-template-columns:4.5em 1fr;gap:12px;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.beat .t{font-family:var(--f-mono);font-weight:700;color:var(--leaf)}
+.timer{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.timer .clock{font-family:var(--f-mono);font-size:2.2rem;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* scoring */
+.score td select{font:inherit;padding:4px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+
+.note{background:var(--sun-soft);border-radius:12px;padding:14px 16px}
+.big{font-size:1.25rem;font-family:var(--f-display);font-weight:600}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:6px}
+
+@keyframes drop{0%{transform:translateY(0);opacity:1}100%{transform:translateY(46px);opacity:0}}
+.spray circle{animation:drop .9s linear infinite}
+@keyframes rain{0%{transform:translateY(-10px);opacity:0}30%{opacity:1}100%{transform:translateY(70px);opacity:0}}
+.rain line{animation:rain 1s linear infinite}
+@media (prefers-reduced-motion: reduce){.spray circle,.rain line{animation:none}}
+@media (max-width:520px){.nl .cell{font-size:.55rem}.nl .dot{width:6px;height:6px}.beat{grid-template-columns:1fr;gap:4px}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<nav class="steps" aria-label="Sections">
+  <a href="#play">Play</a><a href="#case">The case</a><a href="#trace">1 · Trace</a><a href="#why">2 · Why?</a><a href="#fix">3 · Fix</a><a href="#ai">4 · AI prompts</a><a href="#test">5 · Test</a><a href="#check">6 · Check</a><a href="#present">7 · Present</a><a href="#team">Team</a>
+</nav>
+
+<header class="hero" id="play">
+  <span class="badge">Team C · Logic Detective</span>
+  <h1>The Sprinkler Loophole</h1>
+  <p class="lead">A garden sprinkler is switching on at the wrong times. Move the clock and watch the two gardens. The left one uses the <b>broken</b> code. The right one uses our <b>fixed</b> code.</p>
+</header>
+
+<div class="card" style="display:grid;gap:16px">
+  <div class="controls">
+    <div class="ctl">
+      <label for="hour">🕒 What time is it? <span class="val" id="hourVal"></span></label>
+      <input type="range" id="hour" min="0" max="23" step="1" value="14">
+    </div>
+    <div class="ctl">
+      <label for="moist">💧 How wet is the soil? <span class="val" id="moistVal"></span></label>
+      <input type="range" id="moist" min="0" max="100" step="1" value="20">
+    </div>
+    <div class="ctl">
+      <label id="rainLab">🌧️ Did it rain today?</label>
+      <div class="toggle" role="group" aria-labelledby="rainLab">
+        <button id="rainNo" aria-pressed="true">No, dry</button>
+        <button id="rainYes" aria-pressed="false">Yes, it rained</button>
+      </div>
+    </div>
+  </div>
+  <div class="presets">
+    <span class="tag">Quick times:</span>
+    <button class="chip" data-h="2">2 am</button>
+    <button class="chip" data-h="6">6 am</button>
+    <button class="chip" data-h="8">8 am</button>
+    <button class="chip" data-h="14">2 pm (the bug!)</button>
+    <button class="chip" data-h="19">7 pm</button>
+    <button class="chip" data-h="20">8 pm</button>
+  </div>
+  <div class="gardens">
+    <div class="garden" id="gBug">
+      <header><h3>❌ Broken code</h3><span class="pill" id="bugPill"></span></header>
+      <div id="bugSvg"></div>
+      <div class="minitrace" id="bugTrace"></div>
+    </div>
+    <div class="garden" id="gFix">
+      <header><h3>✅ Fixed code</h3><span class="pill" id="fixPill"></span></header>
+      <div id="fixSvg"></div>
+      <div class="minitrace" id="fixTrace"></div>
+    </div>
+  </div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<!-- THE CASE -->
+<section id="case">
+  <span class="eyebrow">The case file</span>
+  <h2>What is supposed to happen?</h2>
+  <p class="lead">The sprinkler should only switch on when <b>all three</b> of these are true at the same time:</p>
+  <div class="row">
+    <div class="card"><p class="big">⏰ It's watering time</p><p>Morning <b>5:00 to 8:00</b> or evening <b>18:00 to 20:00</b> (6 pm to 8 pm).</p></div>
+    <div class="card"><p class="big">☀️ No rain today</p><p>If it already rained, the plants don't need more water.</p></div>
+    <div class="card"><p class="big">🌱 Soil is dry</p><p>Soil wetness must be <b>below 40%</b>.</p></div>
+  </div>
+  <div class="note"><b>The problem:</b> the sprinkler is turning on in the middle of the afternoon. Someone made a mistake in the code. Our job is to find it, prove it, fix it, and check the fix really works.</div>
+  <div>
+    <p class="tag" style="margin-bottom:6px">The broken code (from our problem card)</p>
+<pre class="code"><span class="cm">Input: hasRained, moistureLevel, currentHour</span>
+morningWindow ← (currentHour ≥ 5  <span class="bug">OR</span>  currentHour &lt; 8)
+eveningWindow ← (currentHour ≥ 18 <span class="bug">OR</span>  currentHour &lt; 20)
+goodTime      ← morningWindow OR eveningWindow
+if NOT hasRained AND moistureLevel &lt; 40 AND goodTime
+   then output "ON" else "OFF"</pre>
+  </div>
+</section>
+
+<!-- TRACE -->
+<section id="trace">
+  <span class="eyebrow">Step 1 · Trace by hand (no AI yet)</span>
+  <h2>Let's pretend to be the computer at 2 pm</h2>
+  <p class="lead">"Tracing" means going through the code one line at a time, like a computer does, and writing down each answer. Our test: <b>hasRained = False</b>, <b>moistureLevel = 20</b>, <b>currentHour = 14</b> (2 pm).</p>
+  <div id="walk" style="display:grid;gap:8px"></div>
+  <div class="row" style="flex-wrap:wrap;gap:10px">
+    <button class="btn" id="nextStep" style="flex:0 0 auto">Next line ▶</button>
+    <button class="btn ghost" id="allSteps" style="flex:0 0 auto">Show all</button>
+    <button class="btn ghost" id="resetSteps" style="flex:0 0 auto">Start again</button>
+  </div>
+  <div class="answer fail" id="traceResult" hidden><b>Clue found!</b> The code says <b>ON</b> at 2 pm. But 2 pm is not in the morning window or the evening window, so it should be <b>OFF</b>. The windows are saying "yes" when they should say "no".</div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <span class="eyebrow">Step 2 · Why is it broken?</span>
+  <h2>OR vs AND: the tiny word that broke the garden</h2>
+  <div class="row">
+    <div class="card"><p class="big">OR</p><p>"Is <b>at least one</b> of these true?" If even one part is true, the answer is yes.</p><p style="margin-top:8px;color:var(--muted)">Example: "You can have juice OR milk." One is enough.</p></div>
+    <div class="card"><p class="big">AND</p><p>"Are <b>both</b> of these true?" Every part has to be true, or the answer is no.</p><p style="margin-top:8px;color:var(--muted)">Example: "You need a ticket AND a seat." You need both.</p></div>
+  </div>
+  <div class="card" style="display:grid;gap:14px">
+    <p><b>Try it.</b> Every hour of the day is a box. A blue dot means "hour is 5 or later". An orange dot means "hour is before 8". The green boxes show when the morning window says <b>yes</b>.</p>
+    <div class="toggle" role="group" aria-label="Choose which window" style="max-width:420px">
+      <button id="winM" aria-pressed="true">Morning window</button>
+      <button id="winE" aria-pressed="false">Evening window</button>
+    </div>
+    <div class="toggle" role="group" aria-label="Choose the operator" style="max-width:420px">
+      <button id="opOr" aria-pressed="true">Use OR (broken)</button>
+      <button id="opAnd" aria-pressed="false">Use AND (fixed)</button>
+    </div>
+    <div class="legend" id="nlLegend"></div>
+    <div class="nl" id="nl"></div>
+    <div class="answer" id="nlMsg"></div>
+  </div>
+  <div class="note"><b>The big idea:</b> every hour is either "5 or later" <i>or</i> "before 8". There is no hour that is neither. So with OR, the morning window is true <b>all 24 hours</b>. Same for the evening window. That means "good time" is <b>always</b> true, and the time check does nothing at all.</div>
+</section>
+
+<!-- FIX -->
+<section id="fix">
+  <span class="eyebrow">Step 3 · The fix</span>
+  <h2>Change two words. Leave the third one alone.</h2>
+  <p class="lead">"Between 5 and 8" means the hour must be <b>5 or later AND before 8</b>. Both parts must be true. So we swap OR for AND inside each window.</p>
+<pre class="code"><span class="cm">Input: hasRained, moistureLevel, currentHour</span>
+morningWindow ← (currentHour ≥ 5  <span class="fix">AND</span> currentHour &lt; 8)    <span class="cm">// was OR</span>
+eveningWindow ← (currentHour ≥ 18 <span class="fix">AND</span> currentHour &lt; 20)   <span class="cm">// was OR</span>
+goodTime      ← morningWindow <span class="keep">OR</span> eveningWindow           <span class="cm">// keep OR!</span>
+if NOT hasRained AND moistureLevel &lt; 40 AND goodTime
+   then output "ON" else "OFF"</pre>
+  <div class="card" style="display:grid;gap:12px">
+    <p class="big">Trap question! 🪤</p>
+    <p>Some people (and some AI tools) see the OR on the <code>goodTime</code> line and change that one to AND as well. Should we?</p>
+    <div class="quiz">
+      <button id="qYes">Yes, change it to AND</button>
+      <button id="qNo">No, keep it as OR</button>
+    </div>
+    <div class="answer" id="qAns" hidden></div>
+  </div>
+</section>
+
+<!-- AI -->
+<section id="ai">
+  <span class="eyebrow">Step 4 · Our three AI prompts</span>
+  <h2>What we asked the AI, and what we got back</h2>
+  <p class="lead">Copy each prompt into ChatGPT, Claude or Gemini. Under each one is the correct answer, so you can check if the AI got it right.</p>
+
+  <div class="card prompt">
+    <span class="tag">Prompt 1 · Trace &amp; Diagnose</span>
+    <div class="ask" id="p1">Trace this pseudocode by hand for hasRained = False, moistureLevel = 20, currentHour = 14 (2pm). Do the sprinklers turn on? Should they, at 2pm?
+
+morningWindow ← (currentHour ≥ 5 OR currentHour &lt; 8)
+eveningWindow ← (currentHour ≥ 18 OR currentHour &lt; 20)
+goodTime ← morningWindow OR eveningWindow
+if NOT hasRained AND moistureLevel &lt; 40 AND goodTime then output "ON" else "OFF"</div>
+    <div><button class="copy" data-copy="p1">Copy prompt</button></div>
+    <div class="reply">
+      <p><b>Correct answer:</b></p>
+      <ul class="plain">
+        <li>morningWindow = (14 ≥ 5 → <span class="tf t">TRUE</span>) OR (14 &lt; 8 → <span class="tf f">FALSE</span>) = <span class="tf t">TRUE</span></li>
+        <li>eveningWindow = (14 ≥ 18 → <span class="tf f">FALSE</span>) OR (14 &lt; 20 → <span class="tf t">TRUE</span>) = <span class="tf t">TRUE</span></li>
+        <li>goodTime = TRUE OR TRUE = <span class="tf t">TRUE</span></li>
+        <li>NOT hasRained = <span class="tf t">TRUE</span>, 20 &lt; 40 = <span class="tf t">TRUE</span> → output <b>"ON"</b></li>
+      </ul>
+      <p><b>Should it?</b> No. 2 pm is outside both windows, so it should be <b>"OFF"</b>. The bug is proven.</p>
+    </div>
+  </div>
+
+  <div class="card prompt">
+    <span class="tag">Prompt 2 · Propose a Fix</span>
+    <div class="ask" id="p2">morningWindow and eveningWindow should only be True inside their specific hour ranges, but they're True almost all day. Find and fix the operator error.
+
+Input: hasRained, moistureLevel, currentHour
+morningWindow ← (currentHour ≥ 5 OR currentHour &lt; 8)
+eveningWindow ← (currentHour ≥ 18 OR currentHour &lt; 20)
+goodTime ← morningWindow OR eveningWindow
+if NOT hasRained AND moistureLevel &lt; 40 AND goodTime then output "ON" else "OFF"</div>
+    <div><button class="copy" data-copy="p2">Copy prompt</button></div>
+    <div class="reply">
+      <p><b>Correct answer:</b> change the <b>OR</b> inside each window to <b>AND</b>:</p>
+      <p><code>morningWindow ← (currentHour ≥ 5 AND currentHour &lt; 8)</code><br><code>eveningWindow ← (currentHour ≥ 18 AND currentHour &lt; 20)</code></p>
+      <p>The <code>goodTime</code> line stays <b>OR</b>, because the sprinkler can run in the morning <i>or</i> the evening.</p>
+      <p><b>What to watch for:</b> if the AI also changes <code>goodTime</code> to AND, or rewrites lots of other lines, it has gone too far. Our job is a <b>minimal</b> fix.</p>
+    </div>
+  </div>
+
+  <div class="card prompt">
+    <span class="tag">Prompt 3 · Verify the Fix</span>
+    <div class="ask" id="p3">Verify your fix by tracing it line by line for currentHour = 6 and currentHour = 19, with hasRained = False and moistureLevel = 20. Both should output "ON". Also trace currentHour = 14, which should now output "OFF". Show every True/False value, don't just tell me it works.</div>
+    <div><button class="copy" data-copy="p3">Copy prompt</button></div>
+    <div class="reply">
+      <p><b>Correct answer:</b></p>
+      <ul class="plain">
+        <li><b>Hour 6:</b> morning = (6≥5 TRUE) AND (6&lt;8 TRUE) = <span class="tf t">TRUE</span> → goodTime TRUE → <b>ON</b> ✅</li>
+        <li><b>Hour 19:</b> evening = (19≥18 TRUE) AND (19&lt;20 TRUE) = <span class="tf t">TRUE</span> → goodTime TRUE → <b>ON</b> ✅</li>
+        <li><b>Hour 14:</b> morning = (14≥5 TRUE) AND (14&lt;8 FALSE) = <span class="tf f">FALSE</span>, evening = (14≥18 FALSE) AND (14&lt;20 TRUE) = <span class="tf f">FALSE</span> → goodTime FALSE → <b>OFF</b> ✅</li>
+      </ul>
+      <p>We added "show every value" to the prompt on purpose, so the AI has to actually trace and can't just say "looks good".</p>
+    </div>
+  </div>
+</section>
+
+<!-- TEST -->
+<section id="test">
+  <span class="eyebrow">Step 5 · Test everything</span>
+  <h2>A whole day, hour by hour</h2>
+  <p class="lead">Each box is one hour. Blue means the sprinkler is ON. The top row shows what <b>should</b> happen. This uses the rain and soil settings from the garden at the top.</p>
+  <div class="card scroll"><div class="strip" id="strip"></div></div>
+  <p class="lead" id="stripMsg"></p>
+
+  <h3 style="margin-top:12px">Our test table (edge cases included)</h3>
+  <p class="lead">An <b>edge case</b> is a value right on the line, like exactly 8:00 or exactly 40% wet. Bugs love to hide there. Click any row to load it into the garden.</p>
+  <div class="card scroll" style="padding:8px">
+    <table id="tests">
+      <thead><tr><th>Why we test it</th><th>Hour</th><th>Rained?</th><th>Soil %</th><th>Should be</th><th>Broken code</th><th>Fixed code</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p id="testSummary" class="big"></p>
+</section>
+
+<!-- CHECK -->
+<section id="check">
+  <span class="eyebrow">Step 6 · Verify before we present</span>
+  <h2>The Verification Lead's checklist</h2>
+  <p class="lead">Never present an AI fix you haven't checked yourself. Tick each box once you agree.</p>
+  <div class="checks">
+    <label class="check"><input type="checkbox" id="c1"><span><b>Correct</b><br>The fix gives the right answer for our tests: 2 pm is OFF, 6 am is ON, 7 pm is ON.</span></label>
+    <label class="check"><input type="checkbox" id="c2"><span><b>Complete</b><br>It works on the edges too: 4 am OFF, 5 am ON, 8 am OFF, 6 pm ON, 8 pm OFF, 2 am OFF, rained OFF, soil at 40% OFF. All 13 rows of our table pass.</span></label>
+    <label class="check"><input type="checkbox" id="c3"><span><b>Minimal</b><br>We only changed two words (OR → AND inside each window). We kept <code>goodTime</code> as OR and didn't touch the rain or soil checks.</span></label>
+    <label class="check"><input type="checkbox" id="c4"><span><b>Honest</b><br>We didn't just trust the AI saying "fixed". We made it show every True/False step, and we traced it ourselves.</span></label>
+  </div>
+  <p class="big" id="checkMsg"></p>
+</section>
+
+<!-- PRESENT -->
+<section id="present">
+  <span class="eyebrow">Step 7 · Present &amp; defend (2 minutes)</span>
+  <h2>Our presentation script</h2>
+  <div class="card timer">
+    <span class="clock" id="clock">2:00</span>
+    <button class="btn" id="tStart">Start timer</button>
+    <button class="btn ghost" id="tReset">Reset</button>
+  </div>
+  <div class="script">
+    <div class="beat"><span class="t">0:00</span><div><b>The flaw.</b> "Our garden sprinkler should only run 5 to 8 in the morning or 6 to 8 in the evening, when it's dry. It was turning on at 2 pm. We traced 2 pm by hand: <i>14 is 5 or later</i> is true, so with OR the whole morning window became true. The mistake was <b>OR</b> where it should say <b>AND</b>."</div></div>
+    <div class="beat"><span class="t">0:30</span><div><b>The fix in plain English.</b> "Being 'between 5 and 8' means you have to be 5 or later <i>and</i> before 8. Both have to be true. So we changed OR to AND in the two window lines. We kept the OR that joins morning and evening, because either window is fine."</div></div>
+    <div class="beat"><span class="t">1:00</span><div><b>An edge case we checked.</b> "We tested exactly 8 am. The fixed code says OFF, because 8 is not less than 8. That matches the window ending at 8:00. We also tested 2 am. The broken code said ON at 2 am too, so the bug was much bigger than just the afternoon. The fix says OFF."</div></div>
+    <div class="beat"><span class="t">1:30</span><div><b>What the AI oversimplified.</b> "The problem card says the windows are true 'almost all day'. That's not quite right. With OR they are true <b>every single hour</b>, so the time check did nothing at all. We caught this by testing all 24 hours, not just 2 pm. We also watched for the AI changing the <code>goodTime</code> OR to AND, which would stop the sprinkler from ever running."</div></div>
+  </div>
+  <div class="card" style="display:grid;gap:10px">
+    <h3>Debrief question: which kind of flaw is hardest to catch?</h3>
+    <p><b>Our answer: the off-by-one boundary (Team D's kind).</b> A wrong operator like ours shows up as soon as you test one normal afternoon hour. A boundary bug only shows up if you test the exact edge value, like a password of exactly 8 letters. Most people test "normal" values first, so edge bugs slip through. Ours was still sneaky, because "5 or 8" sounds fine when you say it out loud.</p>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <span class="eyebrow">Our team</span>
+  <h2>Who does what</h2>
+  <p class="lead">Type your names in. They are saved on this device only.</p>
+  <div class="roles">
+    <div class="role"><b>🔍 Logic Detective</b><span>Traces the code by hand and finds the input that breaks it (2 pm).</span><input id="r1" placeholder="Name" aria-label="Logic Detective name"></div>
+    <div class="role"><b>🤖 AI Prompter</b><span>Runs the three prompts and pushes back if the AI is vague.</span><input id="r2" placeholder="Name" aria-label="AI Prompter name"></div>
+    <div class="role"><b>✅ Verification Lead</b><span>Checks the fix with the test table and the checklist.</span><input id="r3" placeholder="Name" aria-label="Verification Lead name"></div>
+    <div class="role"><b>🎤 Presenter</b><span>Gives the 2-minute talk and answers questions.</span><input id="r4" placeholder="Name" aria-label="Presenter name"></div>
+  </div>
+
+  <h3 style="margin-top:16px">Peer scoring for the other teams</h3>
+  <p class="lead">Give each team 1 to 3 points in each column. 3 is best.</p>
+  <div class="card scroll score" style="padding:8px">
+    <table>
+      <thead><tr><th>Team</th><th>Flaw found right</th><th>Fix checked, not just trusted</th><th>Clear explanation</th><th>Total</th></tr></thead>
+      <tbody id="scoreBody"></tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const store = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  };
+
+  // ---- the logic ----
+  function buggy(h, rained, moist){
+    const mA = h>=5, mB = h<8, eA = h>=18, eB = h<20;
+    const m = mA||mB, e = eA||eB, good = m||e;
+    return {mA,mB,eA,eB,m,e,good,on: !rained && moist<40 && good};
+  }
+  function fixed(h, rained, moist){
+    const mA = h>=5, mB = h<8, eA = h>=18, eB = h<20;
+    const m = mA&&mB, e = eA&&eB, good = m||e;
+    return {mA,mB,eA,eB,m,e,good,on: !rained && moist<40 && good};
+  }
+  // what the spec says, written a different way so we are not checking the fix against itself
+  function shouldBe(h, rained, moist){
+    return [5,6,7,18,19].includes(h) && !rained && moist<40;
+  }
+
+  const tf = v => `<span class="tf ${v?'t':'f'}">${v?'TRUE':'FALSE'}</span>`;
+  const fmt = h => { const ap = h<12?'am':'pm'; const hh = h%12===0?12:h%12; return `${hh}:00 ${ap} (${String(h).padStart(2,'0')}:00)`; };
+  const short = h => { const ap = h<12?'am':'pm'; const hh = h%12===0?12:h%12; return `${hh} ${ap}`; };
+
+  // ---- state ----
+  const S = { h:14, moist:20, rained:false };
+
+  // ---- garden picture ----
+  function sky(h){
+    if (h<5 || h>=21) return ['#13204a','#24306a'];
+    if (h<7) return ['#f6a86b','#9cc8ec'];
+    if (h<17) return ['#6fb8f0','#bfe3fb'];
+    if (h<20) return ['#f08a5d','#f7c58a'];
+    return ['#3a3f7a','#7a6aa8'];
+  }
+  function gardenSVG(id, on, h, rained, moist){
+    const [a,b] = sky(h);
+    const night = h<5 || h>=21;
+    // sun/moon arc
+    const t = night ? ((h>=21? h-21 : h+3)/8) : (h-5)/16;
+    const cx = 30 + t*340, cy = 95 - Math.sin(t*Math.PI)*70;
+    const body = night
+      ? `<circle cx="${cx}" cy="${cy}" r="14" fill="#f4f1d0"/><circle cx="${cx+6}" cy="${cy-4}" r="12" fill="${a}"/>`
+      : `<circle cx="${cx}" cy="${cy}" r="16" fill="#ffd34d"/>`;
+    const stars = night ? [[60,20],[140,40],[250,18],[330,45],[200,60]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`).join('') : '';
+    const cloud = rained ? `<g fill="#9aa6b2"><ellipse cx="120" cy="40" rx="40" ry="16"/><ellipse cx="150" cy="32" rx="30" ry="16"/><ellipse cx="260" cy="44" rx="38" ry="14"/></g>
+      <g class="rain" stroke="#4d8fd1" stroke-width="2" stroke-linecap="round">${[100,125,150,175,240,265,290].map((x,i)=>`<line x1="${x}" y1="58" x2="${x-3}" y2="66" style="animation-delay:${(i%4)*.25}s"/>`).join('')}</g>` : '';
+    const soil = moist<40 ? '#8a5a35' : (moist<70 ? '#6b4426' : '#4a2e18');
+    let spray = '';
+    if (on){
+      const drops = [];
+      for (let i=0;i<14;i++){
+        const ang = -150 + i*(120/13);
+        const r = 30 + (i%3)*10;
+        const x = 200 + Math.cos(ang*Math.PI/180)*r;
+        const y = 150 + Math.sin(ang*Math.PI/180)*r;
+        drops.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#4fb3ff" style="animation-delay:${(i%5)*.18}s"/>`);
+      }
+      spray = `<g class="spray">${drops.join('')}</g>`;
+    }
+    return `<svg viewBox="0 0 400 220" role="img" aria-label="Garden at ${short(h)}, sprinkler ${on?'on':'off'}">
+      <defs><linearGradient id="sky${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
+      <rect width="400" height="220" fill="url(#sky${id})"/>
+      ${stars}${body}${cloud}
+      <rect y="170" width="400" height="50" fill="${soil}"/>
+      <rect y="164" width="400" height="10" fill="#4caf50"/>
+      ${[40,80,300,350].map(x=>`<g><rect x="${x-2}" y="135" width="4" height="32" fill="#2e7d32"/><circle cx="${x}" cy="132" r="10" fill="${['#ff6b8a','#ffb74d','#ba68c8','#ff6b8a'][x%4]}"/><circle cx="${x}" cy="132" r="4" fill="#fff59d"/></g>`).join('')}
+      <rect x="194" y="150" width="12" height="20" rx="2" fill="#5d6d7e"/>
+      <rect x="188" y="146" width="24" height="7" rx="3" fill="#85929e"/>
+      ${spray}
+      <rect x="10" y="10" width="92" height="26" rx="13" fill="rgba(0,0,0,.45)"/>
+      <text x="56" y="28" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#ffffff">${String(h).padStart(2,'0')}:00</text>
+    </svg>`;
+  }
+  function miniTrace(r, op){
+    return `<div><span>morningWindow (${op})</span>${tf(r.m)}</div>
+      <div><span>eveningWindow (${op})</span>${tf(r.e)}</div>
+      <div><span>goodTime</span>${tf(r.good)}</div>
+      <div><span>no rain AND soil &lt; 40</span>${tf(!S.rained && S.moist<40)}</div>`;
+  }
+
+  function renderGarden(){
+    $('#hourVal').textContent = fmt(S.h);
+    $('#moistVal').textContent = S.moist + '%' + (S.moist<40 ? ' (dry)' : ' (wet enough)');
+    const b = buggy(S.h,S.rained,S.moist), f = fixed(S.h,S.rained,S.moist), want = shouldBe(S.h,S.rained,S.moist);
+    $('#bugSvg').innerHTML = gardenSVG('b', b.on, S.h, S.rained, S.moist);
+    $('#fixSvg').innerHTML = gardenSVG('f', f.on, S.h, S.rained, S.moist);
+    $('#bugPill').className = 'pill ' + (b.on?'on':'off'); $('#bugPill').textContent = b.on ? '💦 ON' : 'OFF';
+    $('#fixPill').className = 'pill ' + (f.on?'on':'off'); $('#fixPill').textContent = f.on ? '💦 ON' : 'OFF';
+    $('#bugTrace').innerHTML = miniTrace(b,'OR');
+    $('#fixTrace').innerHTML = miniTrace(f,'AND');
+    $('#gBug').classList.toggle('wrong', b.on !== want);
+    const v = $('#verdict');
+    if (b.on !== want){
+      v.className = 'verdict fail';
+      v.innerHTML = `At ${short(S.h)} the sprinkler should be <b>${want?'ON':'OFF'}</b>. The broken code gets it <b>wrong</b>. The fixed code gets it right.`;
+    } else {
+      v.className = 'verdict pass';
+      v.innerHTML = `At ${short(S.h)} the sprinkler should be <b>${want?'ON':'OFF'}</b>. Both versions agree here. Try 2 pm or 2 am to catch the bug!`;
+    }
+    renderStrip();
+  }
+
+  $('#hour').addEventListener('input', e => { S.h = +e.target.value; renderGarden(); });
+  $('#moist').addEventListener('input', e => { S.moist = +e.target.value; renderGarden(); });
+  function setRain(r){ S.rained = r; $('#rainYes').setAttribute('aria-pressed', r); $('#rainNo').setAttribute('aria-pressed', !r); renderGarden(); }
+  $('#rainYes').onclick = () => setRain(true);
+  $('#rainNo').onclick = () => setRain(false);
+  document.querySelectorAll('.chip[data-h]').forEach(c => c.onclick = () => { S.h = +c.dataset.h; $('#hour').value = S.h; renderGarden(); });
+
+  function load(h, rained, moist){
+    S.h=h; S.rained=rained; S.moist=moist;
+    $('#hour').value=h; $('#moist').value=moist; setRain(rained);
+    document.getElementById('play').scrollIntoView({behavior:'smooth'});
+  }
+
+  // ---- step-by-step trace at 2pm ----
+  const steps = [
+    ['Inputs', 'hasRained = False, moistureLevel = 20, currentHour = 14', 'These are the facts we are testing.', null],
+    ['Check 1', 'currentHour ≥ 5   →   14 ≥ 5', 'Is 14 at least 5? Yes.', true],
+    ['Check 2', 'currentHour < 8   →   14 < 8', 'Is 14 smaller than 8? No.', false],
+    ['morningWindow', 'TRUE OR FALSE', 'OR only needs one TRUE. So the morning window says yes at 2 pm. That is already wrong!', true],
+    ['Check 3', 'currentHour ≥ 18  →   14 ≥ 18', 'Is 14 at least 18? No.', false],
+    ['Check 4', 'currentHour < 20  →   14 < 20', 'Is 14 smaller than 20? Yes.', true],
+    ['eveningWindow', 'FALSE OR TRUE', 'One TRUE is enough for OR. Wrong again!', true],
+    ['goodTime', 'morningWindow OR eveningWindow  →  TRUE OR TRUE', 'The code thinks 2 pm is a good time.', true],
+    ['Rain & soil', 'NOT False = TRUE,   20 < 40 = TRUE', 'It is dry and the soil is dry.', true],
+    ['Output', 'TRUE AND TRUE AND TRUE  →  "ON"', 'The sprinkler turns ON at 2 pm. 🐛', true]
+  ];
+  const walk = $('#walk');
+  walk.innerHTML = steps.map((s,i)=>`<div class="tline${i>0?' hide':''}" data-i="${i}"><span class="n">${i+1}</span><div class="what"><b>${s[0]}</b><code>${s[1].replace(/</g,'&lt;')}</code><span class="why">${s[2]}</span></div><span>${s[3]===null?'':tf(s[3])}</span></div>`).join('');
+  let shown = 1;
+  function syncWalk(){
+    walk.querySelectorAll('.tline').forEach((el,i)=>el.classList.toggle('hide', i>=shown));
+    $('#nextStep').disabled = shown>=steps.length;
+    $('#traceResult').hidden = shown<steps.length;
+  }
+  $('#nextStep').onclick = ()=>{ shown=Math.min(steps.length,shown+1); syncWalk(); };
+  $('#allSteps').onclick = ()=>{ shown=steps.length; syncWalk(); };
+  $('#resetSteps').onclick = ()=>{ shown=1; syncWalk(); };
+  syncWalk();
+
+  // ---- number line ----
+  const NL = { win:'m', op:'or' };
+  function renderNL(){
+    const [lo,hi,name] = NL.win==='m' ? [5,8,'morning'] : [18,20,'evening'];
+    $('#nlLegend').innerHTML = `<span><i class="sw" style="background:var(--water)"></i>hour ≥ ${lo}</span><span><i class="sw" style="background:var(--sun)"></i>hour &lt; ${hi}</span><span><i class="sw" style="background:var(--leaf)"></i>${name} window says YES</span>`;
+    let count=0; const hrs=[];
+    $('#nl').innerHTML = Array.from({length:24},(_,h)=>{
+      const a=h>=lo, b=h<hi, yes = NL.op==='or' ? (a||b) : (a&&b);
+      if(yes){count++;hrs.push(h);}
+      return `<div class="cell${yes?' yes':''}" title="${short(h)}"><span class="dot${a?' a':''}"></span><span class="dot${b?' b':''}"></span>${h}</div>`;
+    }).join('');
+    const m = $('#nlMsg');
+    if (NL.op==='or'){
+      m.className='answer fail';
+      m.innerHTML = `With <b>OR</b>, the ${name} window says yes for <b>${count} out of 24 hours</b>. Every box has at least one dot, so every box turns green. The window is useless.`;
+    } else {
+      m.className='answer pass';
+      m.innerHTML = `With <b>AND</b>, only boxes with <b>both</b> dots turn green: <b>${hrs.join(', ')}</b>. That is exactly the ${name} window (${lo}:00 up to ${hi}:00). 🎉`;
+    }
+  }
+  function pick(a,b,on){ $(a).setAttribute('aria-pressed',on); $(b).setAttribute('aria-pressed',!on); }
+  $('#winM').onclick=()=>{NL.win='m';pick('#winM','#winE',true);renderNL();};
+  $('#winE').onclick=()=>{NL.win='e';pick('#winM','#winE',false);renderNL();};
+  $('#opOr').onclick=()=>{NL.op='or';pick('#opOr','#opAnd',true);renderNL();};
+  $('#opAnd').onclick=()=>{NL.op='and';pick('#opOr','#opAnd',false);renderNL();};
+  renderNL();
+
+  // ---- trap quiz ----
+  $('#qYes').onclick=()=>{ const a=$('#qAns'); a.hidden=false; a.className='answer fail';
+    a.innerHTML='<b>Oops, that breaks it the other way!</b> "morning AND evening" would need the hour to be in the morning <i>and</i> the evening at the same time. That never happens, so the sprinkler would <b>never</b> turn on. The plants would dry out. 🥀'; };
+  $('#qNo').onclick=()=>{ const a=$('#qAns'); a.hidden=false; a.className='answer pass';
+    a.innerHTML='<b>Correct!</b> The sprinkler is allowed to run in the morning <i>or</i> the evening. Either one is fine, so OR is right there. Only the two window lines were broken.'; };
+
+  // ---- 24h strip ----
+  function renderStrip(){
+    const rows = [['Should be',shouldBe],['Broken code',(h,r,m)=>buggy(h,r,m).on],['Fixed code',(h,r,m)=>fixed(h,r,m).on]];
+    let html = '<span></span>' + Array.from({length:24},(_,h)=>`<span class="h">${h}</span>`).join('');
+    let bugWrong=0, fixWrong=0;
+    rows.forEach(([lab,fn],ri)=>{
+      html += `<span class="lab">${lab}</span>`;
+      for(let h=0;h<24;h++){
+        const v = fn(h,S.rained,S.moist), want = shouldBe(h,S.rained,S.moist);
+        if(ri===1 && v!==want) bugWrong++;
+        if(ri===2 && v!==want) fixWrong++;
+        html += `<span class="c${v?' y':''}${h===S.h?' now':''}" title="${lab} at ${short(h)}: ${v?'ON':'OFF'}"></span>`;
+      }
+    });
+    $('#strip').innerHTML = html;
+    $('#stripMsg').innerHTML = S.rained || S.moist>=40
+      ? `It rained or the soil is wet, so <b>all three rows are OFF all day</b>. The rain and soil checks were never broken. Set it back to dry to see the bug.`
+      : `The broken code is wrong for <b>${bugWrong} out of 24 hours</b>. It sprays all day and all night! The fixed code is wrong for <b>${fixWrong}</b> hours. The yellow outline is the hour picked at the top.`;
+  }
+
+  // ---- test table ----
+  const tests = [
+    ['The bug report (2 pm)',14,false,20],
+    ['Morning window works',6,false,20],
+    ['Evening window works',19,false,20],
+    ['Just before morning',4,false,20],
+    ['Edge: morning starts',5,false,20],
+    ['Last morning hour',7,false,20],
+    ['Edge: morning ends',8,false,20],
+    ['Just before evening',17,false,20],
+    ['Edge: evening starts',18,false,20],
+    ['Edge: evening ends',20,false,20],
+    ['Middle of the night',2,false,20],
+    ['It rained',6,true,20],
+    ['Edge: soil exactly 40%',6,false,40]
+  ];
+  let pass=0;
+  $('#tests tbody').innerHTML = tests.map(([why,h,r,m],i)=>{
+    const want=shouldBe(h,r,m), b=buggy(h,r,m).on, f=fixed(h,r,m).on;
+    if(f===want) pass++;
+    const cell=(v)=>`<span class="pill ${v===want?'pass':'fail'}">${v?'ON':'OFF'} ${v===want?'✓':'✗'}</span>`;
+    return `<tr data-i="${i}" style="cursor:pointer" tabindex="0"${i===0?' class="hl"':''}><td>${why}</td><td class="num">${String(h).padStart(2,'0')}:00</td><td>${r?'Yes':'No'}</td><td class="num">${m}</td><td><b>${want?'ON':'OFF'}</b></td><td>${cell(b)}</td><td>${cell(f)}</td></tr>`;
+  }).join('');
+  const bugFails = tests.filter(([w,h,r,m])=>buggy(h,r,m).on!==shouldBe(h,r,m)).length;
+  $('#testSummary').innerHTML = `Fixed code: <span class="pill pass">${pass} / ${tests.length} pass</span> &nbsp; Broken code: <span class="pill fail">${bugFails} wrong</span>`;
+  document.querySelectorAll('#tests tbody tr').forEach(tr=>{
+    const go=()=>{ const t=tests[+tr.dataset.i]; load(t[1],t[2],t[3]); };
+    tr.onclick=go; tr.onkeydown=e=>{ if(e.key==='Enter') go(); };
+  });
+
+  // ---- copy buttons ----
+  document.querySelectorAll('.copy').forEach(b=>b.onclick=()=>{
+    const el=document.getElementById(b.dataset.copy);
+    const text=el.innerText;
+    const done=()=>{ b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy prompt',1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=>selectEl(el,b));
+    } else selectEl(el,b);
+  });
+  function selectEl(el,b){ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='Selected, press Ctrl+C'; }
+
+  // ---- checklist ----
+  const cks=['c1','c2','c3','c4'];
+  function syncChecks(){ const n=cks.filter(id=>$('#'+id).checked).length;
+    $('#checkMsg').innerHTML = n===4 ? '<span class="pill pass">All 4 checked. Ready to present! 🎉</span>' : `${n} of 4 checked`; }
+  cks.forEach(id=>{ const el=$('#'+id); el.checked = store.get('sl-'+id)==='1'; el.onchange=()=>{ store.set('sl-'+id, el.checked?'1':'0'); syncChecks(); }; });
+  syncChecks();
+
+  // ---- roles ----
+  ['r1','r2','r3','r4'].forEach(id=>{ const el=$('#'+id); el.value=store.get('sl-'+id)||''; el.oninput=()=>store.set('sl-'+id, el.value); });
+
+  // ---- timer ----
+  let left=120, tick=null;
+  const show=()=>{ $('#clock').textContent = Math.floor(left/60)+':'+String(left%60).padStart(2,'0'); $('#clock').style.color = left<=15 ? 'var(--bad)' : ''; };
+  $('#tStart').onclick=()=>{
+    if(tick){ clearInterval(tick); tick=null; $('#tStart').textContent='Start timer'; return; }
+    if(left===0) left=120;
+    $('#tStart').textContent='Pause';
+    tick=setInterval(()=>{ left--; show(); if(left<=0){ clearInterval(tick); tick=null; $('#tStart').textContent='Start timer'; } },1000);
+  };
+  $('#tReset').onclick=()=>{ clearInterval(tick); tick=null; left=120; show(); $('#tStart').textContent='Start timer'; };
+  show();
+
+  // ---- peer scores ----
+  const teams=[['A','The Loyalty Program Bug'],['B','The Access Control Trap'],['D','The Password Off-By-One']];
+  $('#scoreBody').innerHTML = teams.map(([t,n])=>`<tr><td><b>Team ${t}</b><br><span style="color:var(--muted);font-size:.85rem">${n}</span></td>${[0,1,2].map(k=>`<td><select id="s${t}${k}" aria-label="Team ${t} score ${k+1}"><option value="0">-</option><option>1</option><option>2</option><option>3</option></select></td>`).join('')}<td class="num" id="tot${t}">0</td></tr>`).join('');
+  function syncScores(){ teams.forEach(([t])=>{ let s=0; [0,1,2].forEach(k=>s+= +$('#s'+t+k).value); $('#tot'+t).textContent=s; }); }
+  teams.forEach(([t])=>[0,1,2].forEach(k=>{ const el=$('#s'+t+k); el.value=store.get('sl-s'+t+k)||'0'; el.onchange=()=>{ store.set('sl-s'+t+k, el.value); syncScores(); }; }));
+  syncScores();
+
+  renderGarden();
+})();
+</script>
+</body>
+</html>
